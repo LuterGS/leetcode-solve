@@ -1,47 +1,62 @@
   class Solution {
     fun isValidBST(root: TreeNode?): Boolean {
-
       if (root?.left == null && root?.right == null) return true
 
-      val orderedNumber = ArrayDeque<Int>()
-      val searchQueue = ArrayDeque<TreeNode?>()
-      val leftQueue = ArrayDeque<Int>()
-      val rightQueue = ArrayDeque<Int>()
+      class LinkedNode (val value: Int?) {
+        var next: LinkedNode? = null
+        var before: LinkedNode? = null
+      }
 
-      orderedNumber.addFirst(root.`val`)
+      val searchQueue = ArrayDeque<TreeNode?>()
       searchQueue.addFirst(root)
+      val rootLink = LinkedNode(root.`val`)
+      val start = LinkedNode(null)
+      start.next = rootLink
+      rootLink.before = start
+      val end = LinkedNode(null)
+      end.before = rootLink
+      rootLink.next = end
 
       while (searchQueue.isNotEmpty()) {
         val curNode = searchQueue.removeLast()
         if (curNode?.left != null) {
-          while (orderedNumber.first() != curNode.`val`) {
-            orderedNumber.removeFirst().let { leftQueue.addFirst(it) }
+          var index = start
+          while (index.value != curNode.`val`) {
+            index = index.next!!
           }
-          orderedNumber.addFirst(curNode.left!!.`val`)
-          while (leftQueue.isNotEmpty()) {
-            leftQueue.removeFirst().let { orderedNumber.addFirst(it) }
-          }
-
+          val newNode = LinkedNode(curNode.left!!.`val`)
+          val before = index.before
+          before?.next = newNode
+          index.before = newNode
+          newNode.before = before
+          newNode.next = index
           searchQueue.addFirst(curNode.left)
         }
         if (curNode?.right != null) {
-          while (orderedNumber.last() != curNode.`val`) {
-            orderedNumber.removeLast().let { rightQueue.addFirst(it) }
+          var index = end
+          while (index.value != curNode.`val`) {
+            index = index.before!!
           }
-          orderedNumber.addLast(curNode.right!!.`val`)
-          while (rightQueue.isNotEmpty()) {
-            rightQueue.removeFirst().let { orderedNumber.addLast(it) }
-          }
-          
+          val newNode = LinkedNode(curNode.right!!.`val`)
+          val next = index.next
+          index.next = newNode
+          next?.before = newNode
+          newNode.before = index
+          newNode.next = next
           searchQueue.addFirst(curNode.right)
         }
       }
 
-      println(orderedNumber)
+      var start1 = start.next
+      var start2 = start.next?.next
 
-      for (i in 0..orderedNumber.size - 2) {
-        if (orderedNumber[i] >= orderedNumber[i + 1]) return false
+      while (start2?.value != null) {
+        if (start1!!.value!! >= start2.value!!) return false
+        start1 = start1.next
+        start2 = start2.next
       }
+
+
       return true
     }
   }
